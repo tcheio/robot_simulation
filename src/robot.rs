@@ -26,6 +26,14 @@ pub enum RobotMessage {
     ObstacleDiscovered {
         position: Position,
     },
+    ResourceCollected {
+        robot_id: usize,
+        resource_type: ResourceType,
+        amount: u32,
+    },
+    ResourceDepleted {
+        position: Position,
+    },
 }
 
 pub struct Robot {
@@ -94,6 +102,10 @@ impl Robot {
                 RobotMessage::ResourceDiscovered { position, .. } => {
                     self.known_resources.insert(*position);
                 }
+                RobotMessage::ResourceDepleted { position } => {
+                    self.known_resources.remove(position);
+                }
+                RobotMessage::ResourceCollected { .. } => {}
             }
         }
         self.knowledge_version = new_version;
