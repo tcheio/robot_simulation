@@ -2,8 +2,8 @@ use rand::Rng;
 use std::collections::HashSet;
 
 use crate::position::Position;
-use crate::resource::ResourceType;
 use crate::map::Map;
+use crate::message::RobotMessage;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RobotType {
@@ -15,25 +15,6 @@ pub enum RobotType {
 pub enum RobotState {
     Exploring,
     ReturningToBase,
-}
-
-#[derive(Debug, Clone)]
-pub enum RobotMessage {
-    ResourceDiscovered {
-        position: Position,
-        resource_type: ResourceType,
-    },
-    ObstacleDiscovered {
-        position: Position,
-    },
-    ResourceCollected {
-        robot_id: usize,
-        resource_type: ResourceType,
-        amount: u32,
-    },
-    ResourceDepleted {
-        position: Position,
-    },
 }
 
 pub struct Robot {

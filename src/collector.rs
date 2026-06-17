@@ -5,7 +5,7 @@ use crate::cell::CellType;
 use crate::map::Map;
 use crate::position::Position;
 use crate::resource::ResourceType;
-use crate::robot::RobotMessage;
+use crate::message::RobotMessage;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CollectorState {
@@ -60,7 +60,6 @@ impl CollectorRobot {
                         if self.path.is_empty() {
                             self.target = None;
                         } else {
-                            println!("[Collecteur {}] Nouvelle cible : {:?} ({:?})", self.id, target, resource.resource_type);
                             self.state = CollectorState::MovingToResource;
                         }
                     }
@@ -96,7 +95,6 @@ impl CollectorRobot {
                     let collected = Self::try_collect(map, target);
                     match collected {
                         Some((res_type, depleted)) => {
-                            println!("[Collecteur {}] Ressource {:?} collectée en {:?}", self.id, res_type, target);
                             self.carried_resource = Some(res_type);
                             if depleted {
                                 messages.push(RobotMessage::ResourceDepleted { position: target });
@@ -179,7 +177,6 @@ impl CollectorRobot {
                 if self.target == Some(*position)
                     && matches!(self.state, CollectorState::MovingToResource)
                 {
-                    println!("[Collecteur {}] Cible {:?} épuisée, retour en Idle", self.id, position);
                     self.state = CollectorState::Idle;
                     self.target = None;
                     self.path.clear();
