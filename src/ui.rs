@@ -19,7 +19,7 @@ pub fn render(frame: &mut Frame, map: &Map, base: &Base, robot_views: &HashMap<u
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(map.height as u16 + 2),
-            Constraint::Min(8),
+            Constraint::Min(14),
         ])
         .split(area);
 
@@ -72,23 +72,56 @@ fn render_stats(base: &Base, robot_views: &HashMap<usize, RobotView>) -> Paragra
         .filter(|v| v.kind == RobotKind::Collector)
         .count();
 
+    let label = Style::default().fg(Color::Gray);
+    let val_energy = Style::default().fg(Color::Green);
+    let val_crystal = Style::default().fg(Color::LightMagenta);
+    let val_scout = Style::default().fg(Color::Red);
+    let val_collector = Style::default().fg(Color::Magenta);
+    let val_neutral = Style::default().fg(Color::White);
+    let hint = Style::default().fg(Color::DarkGray);
+    let log_style = Style::default().fg(Color::Yellow);
+
     let mut lines = vec![
-        Line::from(format!("Énergie collectée   : {}", base.energy)),
-        Line::from(format!("Cristaux collectés   : {}", base.crystals)),
-        Line::from(format!("Robots éclaireurs    : {}", scouts)),
-        Line::from(format!("Robots collecteurs   : {}", collectors)),
-        Line::from(format!(
-            "Obstacles connus : {}  |  Ressources connues : {}",
-            base.known_obstacles.len(),
-            base.known_resources.len()
-        )),
+        Line::from(vec![
+            Span::styled("Énergie collectée    : ", label),
+            Span::styled(base.energy.to_string(), val_energy),
+        ]),
+        Line::from(vec![
+            Span::styled("Cristaux collectés   : ", label),
+            Span::styled(base.crystals.to_string(), val_crystal),
+        ]),
+        Line::from(vec![
+            Span::styled("Robots éclaireurs    : ", label),
+            Span::styled(scouts.to_string(), val_scout),
+        ]),
+        Line::from(vec![
+            Span::styled("Robots collecteurs   : ", label),
+            Span::styled(collectors.to_string(), val_collector),
+        ]),
+        Line::from(vec![
+            Span::styled("Obstacles connus : ", label),
+            Span::styled(base.known_obstacles.len().to_string(), val_neutral),
+            Span::styled("  |  Ressources connues : ", label),
+            Span::styled(base.known_resources.len().to_string(), val_neutral),
+        ]),
         Line::from(""),
-        Line::from("Appuyez sur une touche pour quitter"),
+        Line::from(vec![Span::styled("── Logs ──────────────────────────────────────────", Style::default().fg(Color::DarkGray))]),
     ];
 
-    for log in base.logs.iter().rev().take(4) {
-        lines.push(Line::from(log.clone()));
+    if base.logs.is_empty() {
+        lines.push(Line::from(vec![Span::styled("  (aucun log pour l'instant)", Style::default().fg(Color::DarkGray))]));
+    } else {
+        for log in base.logs.iter().rev().take(4) {
+            lines.push(Line::from(vec![Span::styled(log.clone(), log_style)]));
+        }
     }
 
-    Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title("Statistiques"))
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![Span::styled("Appuyez sur une touche pour quitter", hint)]));
+
+    Paragraph::new(lines).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled("Statistiques", Style::default().fg(Color::Cyan))),
+    )
 }
