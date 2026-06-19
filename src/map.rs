@@ -33,21 +33,61 @@ impl Map {
     }
 
     fn generate_obstacles(&mut self) {
-        let perlin = Perlin::new(42);
+        let seed: u32 = rand::random();
+        let perlin = Perlin::new(seed);
         let scale = 12.0;
         let threshold = 0.35;
+        let base = self.base_position;
 
         for y in 0..self.height {
             for x in 0..self.width {
                 let nx = x as f64 / scale;
                 let ny = y as f64 / scale;
-
                 let noise_value = perlin.get([nx, ny]);
 
                 if noise_value > threshold {
-                    self.cells[y][x] = Cell::obstacle();
+                    let dx = (x as isize - base.x as isize).abs() as usize;
+                    let dy = (y as isize - base.y as isize).abs() as usize;
+                    // Protect an 11×11 safe zone around the base
+                    if dx > 5 || dy > 5 {
+                        self.cells[y][x] = Cell::obstacle();
+                    }
                 }
             }
+        }
+
+        // Carve guaranteed 1-cell-wide exits from the safe zone to each map edge
+        self.carve_exits(base);
+    }
+
+    fn carve_exits(&mut self, base: Position) {
+        // North
+        let mut y = base.y as isize - 6;
+        while y >= 0 {
+            if self.cells[y as usize][base.x].is_walkable() { break; }
+            self.cells[y as usize][base.x] = Cell::empty();
+            y -= 1;
+        }
+        // South
+        let mut y = base.y + 6;
+        while y < self.height {
+            if self.cells[y][base.x].is_walkable() { break; }
+            self.cells[y][base.x] = Cell::empty();
+            y += 1;
+        }
+        // West
+        let mut x = base.x as isize - 6;
+        while x >= 0 {
+            if self.cells[base.y][x as usize].is_walkable() { break; }
+            self.cells[base.y][x as usize] = Cell::empty();
+            x -= 1;
+        }
+        // East
+        let mut x = base.x + 6;
+        while x < self.width {
+            if self.cells[base.y][x].is_walkable() { break; }
+            self.cells[base.y][x] = Cell::empty();
+            x += 1;
         }
     }
 
